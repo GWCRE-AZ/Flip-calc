@@ -345,6 +345,12 @@
 
 ## GitHub Push - December 21, 2025
 
-- [ ] Clone Flip-Calc repository
-- [ ] Copy project files to repository
-- [ ] Commit and push changes
+- [x] Clone Flip-Calc repository
+- [x] Copy project files to repository
+- [x] Commit and push changes to https://github.com/GWCRE-AZ/Flip-calc
+
+
+## Export Title Update - December 21, 2025
+
+- [x] Update PDF export title from "CCRE FLIP ANALYZER" to "Flip Analysis"
+- [x] Update Excel export title from "CCRE FLIP ANALYZER" to "Flip Analysis"

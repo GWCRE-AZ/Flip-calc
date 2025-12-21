@@ -314,11 +314,11 @@ export default function Home() {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(28);
-    doc.text("CCRE FLIP ANALYZER", 15, 25);
+    doc.text("Flip Analysis", 15, 25);
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
-    doc.text("Investment Analysis Report", 15, 35);
+    
     
     // Report date on right
     doc.setFontSize(10);
@@ -432,7 +432,7 @@ export default function Home() {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("CCRE FLIP ANALYZER - DETAILED ANALYSIS", 15, 10);
+    doc.text("Flip Analysis - Detailed Analysis", 15, 10);
     doc.text(inputs.address || "Property Analysis", pageWidth - 15, 10, { align: 'right' });
     
     currentY = 25;
@@ -595,7 +595,7 @@ export default function Home() {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("CCRE FLIP ANALYZER - REHAB & SCENARIOS", 15, 10);
+    doc.text("Flip Analysis - Rehab & Scenarios", 15, 10);
     doc.text(inputs.address || "Property Analysis", pageWidth - 15, 10, { align: 'right' });
     
     currentY = 25;
@@ -727,7 +727,7 @@ export default function Home() {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("CCRE FLIP ANALYZER - ADVANCED ANALYSIS", 15, 10);
+    doc.text("Flip Analysis - Advanced Analysis", 15, 10);
     doc.text(inputs.address || "Property Analysis", pageWidth - 15, 10, { align: 'right' });
     
     currentY = 25;
@@ -953,7 +953,7 @@ export default function Home() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-center flex-1">House Flipping Scenario Analysis Calculator</h1>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-center flex-1">House Flipping Analysis Calculator</h1>
             <div className="w-32 flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -971,7 +971,7 @@ export default function Home() {
                     onClick={generatePDF}
                     className="cursor-pointer text-sm"
                   >
-                    <Download className="mr-2 h-3.5 w-3.5" /> PDF Report
+                    PDF Report
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => exportToExcel(inputs, results, 'flip')}

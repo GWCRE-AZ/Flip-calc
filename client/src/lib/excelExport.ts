@@ -21,8 +21,7 @@ export function exportToExcel(
 
   // ===== SHEET 1: EXECUTIVE SUMMARY =====
   const summaryData = [
-    ['CCRE FLIP ANALYZER'],
-    ['Investment Analysis Report'],
+    ['Flip Analysis'],
     [''],
     ['Report Generated:', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })],
     ['Property Address:', inputs.address || 'Not specified'],
