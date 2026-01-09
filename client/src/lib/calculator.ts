@@ -357,7 +357,22 @@ export function calculateResults(inputs: CalculatorInputs): CalculatorResults {
     // Total Interest Paid
     // If reserve is used, those months are paid from reserve (already financed or held back)
     // We count total interest cost regardless of source
-    totalLoanInterest = monthlyLoanPayment * inputs.holdingPeriodMonths;
+    if (canUseInterestOnly) {
+      // For interest-only loans, monthly payment IS interest
+      totalLoanInterest = monthlyLoanPayment * inputs.holdingPeriodMonths;
+    } else {
+      // For amortized loans, calculate actual interest paid during holding period
+      // Using the standard amortization interest calculation
+      let remainingBalance = totalLoanAmount;
+      let interestPaid = 0;
+      for (let month = 0; month < inputs.holdingPeriodMonths; month++) {
+        const monthlyInterest = remainingBalance * monthlyRate;
+        interestPaid += monthlyInterest;
+        const principalPaid = monthlyLoanPayment - monthlyInterest;
+        remainingBalance -= principalPaid;
+      }
+      totalLoanInterest = interestPaid;
+    }
 
   } else {
     // Cash purchase - all costs are out of pocket

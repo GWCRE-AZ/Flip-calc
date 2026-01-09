@@ -172,13 +172,16 @@ export function ExitStrategiesTab({ inputs, results }: ExitStrategiesTabProps) {
     
     if (dealType === 'double_close') {
       // Double close: EMD + closing costs + transactional funding costs
-      totalWholesalerCosts += earnestMoneyDeposit + wholesaleCosts.titleEscrowFees + 
-        wholesaleCosts.recordingFees + wholesaleCosts.attorneyFees + 
+      totalWholesalerCosts += earnestMoneyDeposit + wholesaleCosts.titleEscrowFees +
+        wholesaleCosts.recordingFees + wholesaleCosts.attorneyFees +
         wholesaleCosts.otherCosts + (contractPrice * 0.02); // 2% transactional funding
     }
     // For assignment deals, EMD is returned at closing so it's not a cost
-    
-    const netProfit = assignmentFee - totalWholesalerCosts;
+    // For double close, EMD is applied toward purchase and recovered at sale, so add it back
+
+    const netProfit = dealType === 'double_close'
+      ? assignmentFee - totalWholesalerCosts + earnestMoneyDeposit
+      : assignmentFee - totalWholesalerCosts;
     const cashInvested = dealType === 'assignment' ? earnestMoneyDeposit + marketingCosts : totalWholesalerCosts;
     const roi = (netProfit / cashInvested) * 100;
     const endBuyerClosingCosts = endBuyerPrice * 0.03;

@@ -74,7 +74,7 @@ export function PointsFeesComparison({ inputs, results }: PointsFeesComparisonPr
     const adjustedInputs = {
       ...inputs,
       interestRate: scenario.interestRate,
-      loanPoints: scenario.points,
+      originationPoints: scenario.points,
     };
     const adjustedResults = calculateResults(adjustedInputs);
     
