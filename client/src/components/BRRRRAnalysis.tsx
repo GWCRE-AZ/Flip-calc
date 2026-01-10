@@ -210,29 +210,36 @@ export function BRRRRAnalysis({ inputs, results }: BRRRRAnalysisProps) {
   // DSCR-specific calculations
   const dscrAnalysis = useMemo(() => {
     if (refinanceLoanType !== 'dscr') return null;
-    
+
     const arv = inputs.arv;
     const loanAmount = arv * (1 - dscrInputs.downPayment / 100);
     const monthlyRate = dscrInputs.interestRate / 100 / 12;
     const loanTermMonths = dscrInputs.loanTerm * 12;
-    
+
     // Monthly payment
     let monthlyPayment: number;
     if (dscrInputs.interestOnly) {
       monthlyPayment = loanAmount * monthlyRate;
     } else {
-      monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, loanTermMonths)) / 
+      monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, loanTermMonths)) /
                        (Math.pow(1 + monthlyRate, loanTermMonths) - 1);
     }
-    
-    // Total debt service (PITIA)
-    const totalDebtService = monthlyPayment + 
-                            operatingExpenses.propertyTaxes + 
-                            operatingExpenses.insurance + 
-                            operatingExpenses.hoaFees;
-    
-    // DSCR
-    const dscr = dscrInputs.grossMonthlyRent / totalDebtService;
+
+    // Total debt service (just the mortgage payment for standard DSCR calculation)
+    const totalDebtService = monthlyPayment;
+
+    // Calculate NOI for proper DSCR calculation (consistent with refinanceAnalysis)
+    const vacancyLoss = dscrInputs.grossMonthlyRent * operatingExpenses.vacancyRate / 100;
+    const maintenanceCost = dscrInputs.grossMonthlyRent * maintenancePercent / 100;
+    const managementCost = dscrInputs.grossMonthlyRent * managementPercent / 100;
+    const capExCost = dscrInputs.grossMonthlyRent * capExPercent / 100;
+    const totalOperatingExpenses = operatingExpenses.propertyTaxes + operatingExpenses.insurance +
+      maintenanceCost + managementCost + capExCost + operatingExpenses.hoaFees + operatingExpenses.utilities;
+    const effectiveGrossIncome = dscrInputs.grossMonthlyRent - vacancyLoss;
+    const noi = effectiveGrossIncome - totalOperatingExpenses;
+
+    // DSCR = NOI / Debt Service (standard calculation, consistent with refinanceAnalysis)
+    const dscr = noi / totalDebtService;
     
     // Qualification status
     let qualificationStatus: 'excellent' | 'good' | 'marginal' | 'difficult';
@@ -261,7 +268,7 @@ export function BRRRRAnalysis({ inputs, results }: BRRRRAnalysisProps) {
       qualificationMessage,
       downPaymentAmount: arv * dscrInputs.downPayment / 100
     };
-  }, [dscrInputs, operatingExpenses, inputs.arv, refinanceLoanType]);
+  }, [dscrInputs, operatingExpenses, inputs.arv, refinanceLoanType, maintenancePercent, managementPercent, capExPercent]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
