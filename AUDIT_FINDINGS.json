@@ -1,7 +1,8 @@
 {
   "audit_metadata": {
     "application_name": "CCRE Flip Analyzer - House Flipping Calculator",
-    "audit_date": "2026-01-09",
+    "audit_date": "2026-01-10",
+    "previous_audit_date": "2026-01-09",
     "discovery_complete": true,
     "fixes_complete": true,
     "phase": "complete"
@@ -63,6 +64,20 @@
         "impact": "No impact - calculation is mathematically correct",
         "affected_features": ["Wholesale Analysis - Net Profit calculation"],
         "status": "NO FIX NEEDED - CORRECT AS-IS"
+      },
+      {
+        "id": "CRIT-003",
+        "file": "client/src/components/BRRRRAnalysis.tsx",
+        "line": "235",
+        "severity": "CRITICAL",
+        "type": "calculation_error",
+        "description": "dscrAnalysis function used grossMonthlyRent / PITIA for DSCR calculation instead of NOI / debt service. This was inconsistent with refinanceAnalysis (line 179) which correctly uses NOI / totalDebtService. Using gross rent gives artificially high DSCR values that could mislead users about loan qualification.",
+        "code_snippet": "const dscr = dscrInputs.grossMonthlyRent / totalDebtService;",
+        "correct_approach": "Calculate NOI (effective gross income - operating expenses) and use DSCR = NOI / debt service",
+        "impact": "DSCR values shown in the DSCR loan analysis were inflated (did not account for vacancy, maintenance, management, capEx), potentially misleading users about loan qualification status",
+        "affected_features": ["BRRRR Analysis - DSCR Loan Qualification"],
+        "status": "FIXED",
+        "fix_applied": "Rewrote dscrAnalysis to calculate NOI consistently with refinanceAnalysis: accounts for vacancy, maintenance, management, and capEx before calculating DSCR"
       }
     ],
     "serious": [
