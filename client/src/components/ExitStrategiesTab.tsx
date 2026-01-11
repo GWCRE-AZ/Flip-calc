@@ -658,7 +658,7 @@ export function ExitStrategiesTab({ inputs, results }: ExitStrategiesTabProps) {
                   <div className="flex justify-between"><span className="text-muted-foreground">Contract Price (to Seller)</span><span>{formatCurrency(wholesaleAnalysis.contractPrice)}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">+ Assignment Fee</span><span className="text-green-600">+{formatCurrency(assignmentFee)}</span></div>
                   <div className="flex justify-between font-medium border-t pt-2"><span>End Buyer Pays</span><span>{formatCurrency(wholesaleAnalysis.endBuyerPrice)}</span></div>
-                  <div className="flex justify-between text-red-600"><span>- Your Costs (EMD + Marketing{dealType === 'double_close' ? ' + Closing' : ''})</span><span>-{formatCurrency(wholesaleAnalysis.totalWholesalerCosts - earnestMoneyDeposit)}</span></div>
+                  <div className="flex justify-between text-red-600"><span>- Your Costs ({dealType === 'assignment' ? 'Marketing' : 'Marketing + Closing + Funding'})</span><span>-{formatCurrency(dealType === 'assignment' ? marketingCosts : wholesaleAnalysis.totalWholesalerCosts - earnestMoneyDeposit)}</span></div>
                   <div className={`flex justify-between font-bold border-t pt-2 ${wholesaleAnalysis.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}><span>Your Net Profit</span><span>{formatCurrency(wholesaleAnalysis.netProfit)}</span></div>
                 </div>
               </div>

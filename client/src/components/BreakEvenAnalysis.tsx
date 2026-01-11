@@ -55,9 +55,12 @@ export function BreakEvenAnalysis({ inputs, results }: BreakEvenAnalysisProps) {
   // Break-even ARV calculation
   // For percentage-based: ARV = fixedCosts / (1 - sellingRates)
   // For detailed costs: ARV = fixedCosts + commission (still percentage-based)
+  // Guard against division by zero when selling rates = 100%
+  const detailedDivisor = 1 - inputs.sellingCommissionPercent / 100;
+  const simpleDivisor = 1 - sellingRates;
   const breakEvenARV = inputs.useDetailedSellingCosts
-    ? fixedCosts / (1 - inputs.sellingCommissionPercent / 100)
-    : fixedCosts / (1 - sellingRates);
+    ? (detailedDivisor > 0 ? fixedCosts / detailedDivisor : Infinity)
+    : (simpleDivisor > 0 ? fixedCosts / simpleDivisor : Infinity);
   
   // Calculate Maximum Purchase Price for Target Profit
   // Net Profit = ARV - Total Project Cost
@@ -79,17 +82,17 @@ export function BreakEvenAnalysis({ inputs, results }: BreakEvenAnalysisProps) {
     fixedSellingCosts
   ) / (1 + closingRate);
   
-  // Calculate ARV needed for target profit
+  // Calculate ARV needed for target profit (use same divisors for consistency)
   const arvForTargetProfit = inputs.useDetailedSellingCosts
-    ? (fixedCosts + targetProfit) / (1 - inputs.sellingCommissionPercent / 100)
-    : (fixedCosts + targetProfit) / (1 - sellingRates);
-  
-  // Calculate profit margin at break-even
-  const currentProfitMargin = results.netProfit / inputs.arv * 100;
-  
-  // Calculate how much cushion/buffer exists
+    ? (detailedDivisor > 0 ? (fixedCosts + targetProfit) / detailedDivisor : Infinity)
+    : (simpleDivisor > 0 ? (fixedCosts + targetProfit) / simpleDivisor : Infinity);
+
+  // Calculate profit margin at break-even (guard against zero ARV)
+  const currentProfitMargin = inputs.arv > 0 ? (results.netProfit / inputs.arv) * 100 : 0;
+
+  // Calculate how much cushion/buffer exists (guard against zero ARV)
   const arvCushion = inputs.arv - breakEvenARV;
-  const arvCushionPercent = (arvCushion / inputs.arv) * 100;
+  const arvCushionPercent = inputs.arv > 0 ? (arvCushion / inputs.arv) * 100 : 0;
   
   return (
     <div className="space-y-6">
