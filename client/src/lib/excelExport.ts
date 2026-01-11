@@ -287,6 +287,20 @@ export function exportToExcel(
   const optimisticProfit = optimisticARV - optimisticSellingCosts - results.totalProjectCost + results.totalSellingCosts;
   const pessimisticProfit = pessimisticARV - pessimisticSellingCosts - results.totalProjectCost + results.totalSellingCosts;
 
+  // Calculate break-even ARV correctly
+  const fixedCostsExcludingSelling = results.totalProjectCost - results.totalSellingCosts;
+  const sellingRates = inputs.useDetailedSellingCosts
+    ? inputs.sellingCommissionPercent / 100  // Only commission is ARV-based in detailed mode
+    : (inputs.sellingCommissionPercent + inputs.sellingClosingCostPercent) / 100;
+  const fixedSellingCosts = inputs.useDetailedSellingCosts
+    ? (inputs.sellingTitleInsurance + inputs.sellingEscrowFees + inputs.sellingTransferTax +
+       inputs.sellingAttorneyFees + inputs.sellingRecordingFees + inputs.sellingHomeWarranty +
+       inputs.sellingOtherSellingCosts + (inputs.sellerConcessions || 0))
+    : (inputs.sellerConcessions || 0);
+  const breakEvenARV = sellingRates < 1
+    ? (fixedCostsExcludingSelling + fixedSellingCosts) / (1 - sellingRates)
+    : 0;
+
   const scenarioData = [
     ['SCENARIO ANALYSIS'],
     [''],
@@ -300,7 +314,7 @@ export function exportToExcel(
     ['RISK ASSESSMENT', ''],
     ['Downside Risk', formatCurrency(baseProfit - pessimisticProfit)],
     ['Upside Potential', formatCurrency(optimisticProfit - baseProfit)],
-    ['Break-Even ARV', formatCurrency(results.totalProjectCost + results.totalSellingCosts)],
+    ['Break-Even ARV', formatCurrency(breakEvenARV)],
   ];
 
   const scenarioSheet = XLSX.utils.aoa_to_sheet(scenarioData);
