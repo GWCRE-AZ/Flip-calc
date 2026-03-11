@@ -103,6 +103,7 @@ export interface CalculatorResults {
   // Validation
   isLoanCapped: boolean;
   maxLoanAmount: number;
+  loanCapShortfall: number;
 }
 
 export const defaultRehabCategories: RehabCategory[] = [
@@ -249,6 +250,7 @@ export function calculateResults(inputs: CalculatorInputs): CalculatorResults {
       financedInterestReserve: 0,
       isLoanCapped: false,
       maxLoanAmount: 0,
+      loanCapShortfall: 0,
       totalFinancingCosts: 0,
       totalHoldingCosts: 0,
       sellingCommission: 0,
@@ -285,6 +287,7 @@ export function calculateResults(inputs: CalculatorInputs): CalculatorResults {
   let totalOriginationPoints = 0;
   let financedInterestReserve = 0;
   let isLoanCapped = false;
+  let loanCapShortfall = 0;
   const maxLoanAmount = inputs.arv * (inputs.maxLoanToARVPercent / 100);
 
   if (inputs.loanType !== 'cash') {
@@ -329,30 +332,37 @@ export function calculateResults(inputs: CalculatorInputs): CalculatorResults {
       totalLoanAmount += totalOriginationPoints;
     }
 
-    // Check against ARV Cap (Hard Money only - conventional doesn't use this)
-    if (!isConventional && totalLoanAmount > maxLoanAmount) {
-      isLoanCapped = true;
-    }
-
     // Calculate Monthly Payment
     const monthlyRate = inputs.interestRate / 100 / 12;
-    
-    if (canUseInterestOnly) {
-      monthlyLoanPayment = totalLoanAmount * monthlyRate;
-    } else {
-      // Amortized payment formula
-      if (monthlyRate > 0) {
-        monthlyLoanPayment = (totalLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanTermMonths)) / 
-                             (Math.pow(1 + monthlyRate, loanTermMonths) - 1);
-      } else {
-        monthlyLoanPayment = totalLoanAmount / loanTermMonths;
+
+    const calculateMonthlyPayment = (loanAmount: number) => {
+      if (canUseInterestOnly) {
+        return loanAmount * monthlyRate;
       }
-    }
+
+      if (monthlyRate > 0) {
+        return (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanTermMonths)) /
+          (Math.pow(1 + monthlyRate, loanTermMonths) - 1);
+      }
+
+      return loanAmount / loanTermMonths;
+    };
 
     // Interest Reserve Logic (Hard Money only)
     if (canUseInterestReserve) {
-      financedInterestReserve = monthlyLoanPayment * inputs.interestReserveMonths;
+      const provisionalPayment = calculateMonthlyPayment(totalLoanAmount);
+      financedInterestReserve = provisionalPayment * inputs.interestReserveMonths;
+      totalLoanAmount += financedInterestReserve;
     }
+
+    // Check against ARV Cap (Hard Money only - conventional doesn't use this)
+    if (!isConventional && totalLoanAmount > maxLoanAmount) {
+      isLoanCapped = true;
+      loanCapShortfall = totalLoanAmount - maxLoanAmount;
+      totalLoanAmount = maxLoanAmount;
+    }
+    
+    monthlyLoanPayment = calculateMonthlyPayment(totalLoanAmount);
 
     // Total Interest Paid
     // If reserve is used, those months are paid from reserve (already financed or held back)
@@ -386,12 +396,14 @@ export function calculateResults(inputs: CalculatorInputs): CalculatorResults {
     inputs.monthlyPropertyTaxes +
     inputs.monthlyInsurance +
     inputs.monthlyUtilities +
-    inputs.monthlyHOA +
-    inputs.monthlyLawnCare +
-    inputs.monthlyPoolMaintenance +
-    inputs.monthlySecurityAlarm +
-    inputs.monthlyVacancyInsurance +
-    inputs.monthlyOther;
+    (inputs.useDetailedHoldingCosts
+      ? inputs.monthlyHOA +
+        inputs.monthlyLawnCare +
+        inputs.monthlyPoolMaintenance +
+        inputs.monthlySecurityAlarm +
+        inputs.monthlyVacancyInsurance +
+        inputs.monthlyOther
+      : 0);
   
   const totalHoldingCosts = monthlyHoldingCosts * inputs.holdingPeriodMonths;
 
@@ -422,7 +434,7 @@ export function calculateResults(inputs: CalculatorInputs): CalculatorResults {
 
   // Cash Needed Calculation
   // Start with Down Payment
-  let cashNeeded = downPayment;
+  let cashNeeded = downPayment + loanCapShortfall;
   
   // Determine loan-specific constraints for cash needed
   const isConventionalLoan = inputs.loanType === 'conventional';
@@ -502,6 +514,7 @@ export function calculateResults(inputs: CalculatorInputs): CalculatorResults {
     cashOnCash,
     profitMargin,
     isLoanCapped,
-    maxLoanAmount
+    maxLoanAmount,
+    loanCapShortfall,
   };
 }
